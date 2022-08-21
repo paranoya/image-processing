@@ -1,3 +1,9 @@
+# My stuff
+data
+output
+bak
+tests
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
