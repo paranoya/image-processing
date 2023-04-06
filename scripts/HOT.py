@@ -20,6 +20,7 @@ def run(data, argsorted_data, sorted_strides):
     area = np.zeros(n_peaks_max, dtype=np.int32)
     sum_data = np.zeros(n_peaks_max, dtype=np.float64)
     sum_data2 = np.zeros(n_peaks_max, dtype=np.float64)
+    max_test_stat = np.zeros(n_peaks_max, dtype=np.float64)
 
     sorted_index = argsorted_data.size-1  # maximum
     pixels_so_far = 0
@@ -77,6 +78,11 @@ def run(data, argsorted_data, sorted_strides):
 
         sum_data[selected_parent] += pixel_data
         sum_data2[selected_parent] += pixel_data*pixel_data
+        '''
+        test_stat = sum_data2[selected_parent]/area[selected_parent] - (sum_data[selected_parent]/area[selected_parent])**2
+        if test_stat > max_test_stat[selected_parent]:
+            max_test_stat[selected_parent] = test_stat
+        '''
         
     n_src = np.count_nonzero(label)
     indep = np.where(parent[1:n_labels+1] == np.arange(1,n_labels+1))
@@ -93,6 +99,7 @@ def run(data, argsorted_data, sorted_strides):
     catalog = (parent[:n_labels+1],
                area[:n_labels+1],
                test_stat,
+               #max_test_stat[:n_labels+1]
               )
 
     return label.reshape(data.shape), catalog
