@@ -26,13 +26,16 @@ def run(test_stat, area, plots=True):
     n_t = number_above_t[n_candidates//2:]
     slope = np.log(n_t[-1]/n_t[0]) / np.log(t[-1]/t[0])
     power_law = n_t[0] * pow((t/t[0]), slope)
+    print(f'DEBUG: slope = {slope}')
 
     difference = power_law - n_t
-    index_0 = np.argmin(difference)
-    index_1 = np.argmax(difference)
+    index_0 = np.argmax(difference)
+    index_1 = index_0 + np.argmin(difference[index_0:])
+    print(f'DEBUG: t[{index_0}, {index_1}] = ({t[index_0]}, {t[index_0]})')
     t = t[index_0:index_1]
     n_t = n_t[index_0:index_1]
     slope = np.log(n_t[-1]/n_t[0]) / np.log(t[-1]/t[0])
+    print(f'DEBUG: slope = {slope}')
 
     Chernoff_threshold = t[-1]
     n_sources = np.count_nonzero(sorted_t > Chernoff_threshold)
@@ -49,8 +52,9 @@ def run(test_stat, area, plots=True):
     n_t = number_above_t[-n_sources:]
     slope_bg = np.min(np.log(n_t[1:]/n_t[0]) / np.log(t_src[1:]/t_src[0]))
     power_law_bg = n_t[0] * pow((t_src/t_src[0]), slope_bg)
-    n_reliable = int(np.max(n_t-power_law_bg))
+    n_reliable = int(np.max(n_t-power_law_bg)) + 1
     reliable_threshold = sorted_t[-n_reliable]
+    print('DEBUG:', slope_bg, n_reliable)
     slope_src = np.nanmax(np.log(n_t[-n_reliable]/n_t[:-n_reliable]) / np.log(t_src[-n_reliable]/t_src[:-n_reliable]))
     power_law_src = n_t[-n_reliable] * pow((t_src/reliable_threshold), slope_src)
 
@@ -98,7 +102,7 @@ def run(test_stat, area, plots=True):
 
         ax.set_xlabel('normalised test statistic')
         ax.set_xscale('log')
-        ax.set_xlim(.1*Chernoff_threshold, 2*sorted_t[-1])
+        #ax.set_xlim(.1*Chernoff_threshold, 2*sorted_t[-1])
 
         for ax in axes.flatten():
             ax.tick_params(which='both', direction='in')
