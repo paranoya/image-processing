@@ -21,52 +21,62 @@ def run(test_stat, area, plots=True):
     sorted_t = np.sort((test_stat/interp_z_Chernoff)[test_stat > 0])
     n_candidates = sorted_t.size
     number_above_t = n_candidates - np.arange(n_candidates)
-
-    t = sorted_t[n_candidates//2:]
-    n_t = number_above_t[n_candidates//2:]
-    slope = np.log(n_t[-1]/n_t[0]) / np.log(t[-1]/t[0])
-    power_law = n_t[0] * pow((t/t[0]), slope)
-    print(f'DEBUG: slope = {slope}')
-
-    difference = power_law - n_t
-    index_0 = np.argmax(difference)
-    index_1 = index_0 + np.argmin(difference[index_0:])
-    print(f'DEBUG: t[{index_0}, {index_1}] = ({t[index_0]}, {t[index_0]})')
-    t = t[index_0:index_1]
-    n_t = n_t[index_0:index_1]
-    slope = np.log(n_t[-1]/n_t[0]) / np.log(t[-1]/t[0])
-    print(f'DEBUG: slope = {slope}')
-
-    Chernoff_threshold = t[-1]
-    n_sources = np.count_nonzero(sorted_t > Chernoff_threshold)
-    print(f'{n_sources} found above threshold {Chernoff_threshold:.3g}')
-
-    '''
-    t = sorted_t[n_candidates//2+index_0:]
-    n_t = number_above_t[n_candidates//2+index_0:]
-    power_law = n_t[0] * pow((t/t[0]), slope)
-    #Chernoff_threshold = np.max(t[n_t <= power_law])
-    '''
-
-    t_src = sorted_t[-n_sources:]
-    n_t = number_above_t[-n_sources:]
-    slope_bg = np.min(np.log(n_t[1:]/n_t[0]) / np.log(t_src[1:]/t_src[0]))
-    power_law_bg = n_t[0] * pow((t_src/t_src[0]), slope_bg)
-    n_reliable = int(np.max(n_t-power_law_bg)) + 1
-    reliable_threshold = sorted_t[-n_reliable]
-    print('DEBUG:', slope_bg, n_reliable)
-    slope_src = np.nanmax(np.log(n_t[-n_reliable]/n_t[:-n_reliable]) / np.log(t_src[-n_reliable]/t_src[:-n_reliable]))
-    power_law_src = n_t[-n_reliable] * pow((t_src/reliable_threshold), slope_src)
-
-    contamination = power_law_bg/(power_law_src+power_law_bg)
-    contamination[0] = 1  # (just in case it was not)
-    reliability = 1 - np.interp(test_stat/interp_z_Chernoff, t_src, contamination)
-
-    true_overdensity = reliability > 0
-    n_sources = np.count_nonzero(true_overdensity)
-    reliability_threshold = 1 - np.interp(reliable_threshold, t_src, contamination)
-    print(f'{n_sources} with reliability > 0, {n_reliable} above {reliability_threshold} ({time()-t0:.3g} s)')
     
+    #t_mean = np.mean(sorted_t)
+    #index_0 = np.searchsorted(sorted_t, t_mean)
+    index_0 = 0
+    index_1 = n_candidates - 1
+    #slope_bg = np.log(number_above_t[index_1]/number_above_t[index_0]) / np.log(sorted_t[index_1]/sorted_t[index_0])
+    #power_law_bg = number_above_t[index_0] * pow((sorted_t/sorted_t[index_0]), slope_bg)
+    #while index_1 == n_candidates-1:
+    while True:
+        slope_bg = np.log(number_above_t[index_1]/number_above_t[index_0]) / np.log(sorted_t[index_1]/sorted_t[index_0])
+        print(f'DEBUG: t[{index_0}, {index_1}] = ({sorted_t[index_0]}, {sorted_t[index_1]}), slope bg={slope_bg}')
+        power_law_bg = number_above_t[index_0] * pow((sorted_t/sorted_t[index_0]), slope_bg)
+        difference = number_above_t - power_law_bg
+        index_max = index_0 + np.argmax(difference[index_0:])
+        slope_max = np.log(number_above_t[index_1]/n_candidates) / np.log(sorted_t[index_1]/sorted_t[index_max])
+        #power_law_max = n_candidates * pow((sorted_t/sorted_t[index_0]), slope_max)
+        #difference = number_above_t - power_law_max
+        if slope_max < slope_bg:
+            index_0 = index_max
+            index_1 = index_0 + 1 + np.argmin(difference[index_max+1:])
+        else:
+            break
+
+    slope_src = np.log(number_above_t[index_1]/number_above_t[-1]) / np.log(sorted_t[index_1]/sorted_t[-1])
+    power_law_src = number_above_t[-1] * pow((sorted_t/sorted_t[-1]), slope_src)
+    difference = number_above_t - power_law_src
+    index_2 = np.argmin(difference[index_1:])
+    slope_min = np.log(number_above_t[index_1+index_2]/number_above_t[-1]) / np.log(sorted_t[index_1+index_2]/sorted_t[-1])
+    power_law_min = number_above_t[-1] * pow((sorted_t/sorted_t[-1]), slope_min)
+    print(f'DEBUG: index_1, 2 = {index_1, index_2}')
+    if difference[index_1+index_2] < 0:
+        slope_src = slope_min
+        power_law_src = power_law_min
+        n_reliable = int(power_law_min[index_1])
+    else:
+        n_reliable = number_above_t[index_1]
+    reliable_threshold = sorted_t[-n_reliable]
+    src_density = slope_src * number_above_t[-1]/sorted_t[-1] * pow((reliable_threshold/sorted_t[-1]), slope_src - 1)
+    bg_density = slope_bg * number_above_t[index_0]/sorted_t[index_0] * pow((reliable_threshold/sorted_t[index_0]), slope_bg -1)
+    reliability_threshold = src_density / (src_density + bg_density)
+    print(f'DEBUG: slope bg={slope_bg}, src={slope_src}, n_reliable={n_reliable}')
+
+    t = test_stat/interp_z_Chernoff
+    good_t = t > 0
+    t[~good_t] = sorted_t[0]/2
+    src_density = slope_src * number_above_t[-1]/sorted_t[-1] * pow((t/sorted_t[-1]), slope_src - 1)
+    bg_density = slope_bg * number_above_t[index_0]/sorted_t[index_0] * pow((t/sorted_t[index_0]), slope_bg -1)
+    reliability = np.clip(src_density / (src_density + bg_density), a_min=0, a_max=1)
+    
+
+    Chernoff_threshold = sorted_t[index_1]
+    true_overdensity = t > Chernoff_threshold
+    n_sources = np.count_nonzero(true_overdensity)
+    print(f'{n_sources} found above threshold {Chernoff_threshold:.3g}')
+    reliability[~true_overdensity] = 0
+
     if plots:
         plt.close('test')
         fig = plt.figure('test', figsize=(6, 6))
@@ -81,11 +91,11 @@ def run(test_stat, area, plots=True):
 
         ax.plot(sorted_t, number_above_t, 'k-')
 
-        ax.plot(t_src, power_law_bg, 'r:', label='estimated contamination')
-        ax.plot(t_src, power_law_src, 'b:', label='estimated sources')
+        ax.plot(sorted_t[index_0:], power_law_bg[index_0:], 'r:')
+        ax.plot(sorted_t[index_1:], power_law_src[index_1:], 'b--')
         ax.axvline(Chernoff_threshold, c='b', ls='--', label=f'threshold={Chernoff_threshold:.3g} ({n_sources} sources)')
-        ax.axvline(reliable_threshold, c='b', ls='-', label=f'threshold={reliable_threshold:.3g} ({n_reliable} sources)')
-        #ax.plot(t, n_t-power_law, 'b:', label='estimated sources')
+        ax.axvline(reliable_threshold, c='b', ls=':', label=f'threshold={reliable_threshold:.3g} ({n_reliable} sources)')
+        ax.axhline(n_reliable, c='b', ls=':')
 
         ax.set_ylim(.5, 2*n_candidates)
         ax.legend()
@@ -94,9 +104,12 @@ def run(test_stat, area, plots=True):
         ax = axes[1, 0]  # ----------------- new panel
         ax.set_ylabel('reliability')
 
-        ax.axvline(Chernoff_threshold, c='b', ls='--', label=f'reliability > 0 ({n_sources} sources)')
-        ax.axvline(reliable_threshold, c='b', ls='-', label=f'reliability > {reliability_threshold:.3g} ({n_reliable} sources)')
-        ax.plot(t_src, 1-contamination, 'k-')
+        ax.axvline(Chernoff_threshold, c='b', ls='--')
+        ax.axvline(reliable_threshold, c='b', ls=':', label=f'reliability threshold={reliability_threshold:.3g} ({n_reliable} sources)')
+        ax.axhline(reliability_threshold, c='b', ls=':')
+        src_density = slope_src * number_above_t[-1]/sorted_t[-1] * pow((sorted_t/sorted_t[-1]), slope_src - 1)
+        bg_density = slope_bg * number_above_t[index_0]/sorted_t[index_0] * pow((sorted_t/sorted_t[index_0]), slope_bg -1)
+        ax.plot(sorted_t, src_density / (src_density + bg_density), 'k-')
         ax.legend()
 
 
@@ -129,8 +142,8 @@ def run(test_stat, area, plots=True):
                               np.logspace(np.log10(1e-2*Chernoff_threshold), np.log10(1e3*Chernoff_threshold), 30)],
                         cmap='Greys', norm=colors.SymLogNorm(linthresh=1))
         ax.plot(n_Chernoff_max, Chernoff_threshold*z_Chernoff_max, 'b--')
-        ax.plot(n_Chernoff_max, reliable_threshold*z_Chernoff_max, 'b-')
-        sc = ax.scatter(area[true_overdensity], test_stat[true_overdensity], label=f'{n_sources} sources',
+        ax.plot(n_Chernoff_max, reliable_threshold*z_Chernoff_max, 'b:')
+        sc = ax.scatter(area[true_overdensity], test_stat[true_overdensity], label=f'{n_sources} sources ({n_reliable} reliable)',
                         marker='o', s=10, c=reliability[true_overdensity], cmap='nipy_spectral_r', vmax=reliability_threshold)
         ax.legend()
         cb = fig.colorbar(sc, ax=ax)

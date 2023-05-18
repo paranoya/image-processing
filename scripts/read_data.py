@@ -65,8 +65,19 @@ def run(dataset, section=None):
 
     if dataset == 34:
         # TODO: Make sure section is between (0, 0, 0) and (7, 6, 6)
-        object_name = f"Section {section} in Tobias' model datacube"
+        object_name = f"Section {section} in Tobias' noiseless datacube"
         hdu = fits.open('data/model_cube_blank_convol.fits')
+        i = 175*section[0]
+        j = max(0, 200*section[1] - 10)
+        k = max(0, 200*section[2] - 10)
+        print(i,j,k)
+        data = hdu[0].data[i:i+175, j:j+190, k:k+190].astype(np.float32)  # to make sure it's converted to float
+        wcs = WCS(hdu[0].header).celestial
+
+    if dataset == 35:
+        # TODO: Make sure section is between (0, 0, 0) and (7, 6, 6)
+        object_name = f"Section {section} in Tobias' synthetic datacube"
+        hdu = fits.open('data/model_cube_noise_convol.fits')
         i = 175*section[0]
         j = max(0, 200*section[1] - 10)
         k = max(0, 200*section[2] - 10)
