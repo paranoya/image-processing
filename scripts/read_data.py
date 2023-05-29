@@ -70,7 +70,7 @@ def run(dataset, section=None):
         i = 175*section[0]
         j = max(0, 200*section[1] - 10)
         k = max(0, 200*section[2] - 10)
-        print(i,j,k)
+        #print(i,j,k)
         data = hdu[0].data[i:i+175, j:j+190, k:k+190].astype(np.float32)  # to make sure it's converted to float
         wcs = WCS(hdu[0].header).celestial
 
@@ -81,7 +81,7 @@ def run(dataset, section=None):
         i = 175*section[0]
         j = max(0, 200*section[1] - 10)
         k = max(0, 200*section[2] - 10)
-        print(i,j,k)
+        #print(i,j,k)
         data = hdu[0].data[i:i+175, j:j+190, k:k+190].astype(np.float32)  # to make sure it's converted to float
         wcs = WCS(hdu[0].header).celestial
 
