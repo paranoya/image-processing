@@ -29,7 +29,7 @@ def run(dataset, section=None):
     if dataset == 22:
         object_name = 'NGC2420'
         hdu = fits.open('data/uamA_0033.fits')
-        data = hdu[0].data.astype(np.float32)
+        data = hdu[0].data[:200,:200].astype(np.float32)
         wcs = WCS(hdu[0].header)
 
     if dataset == 23:
