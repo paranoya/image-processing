@@ -20,12 +20,15 @@ def run(data, argsorted_data, sorted_strides):
     area = np.zeros(n_peaks_max, dtype=np.int32)
     sum_data = np.zeros(n_peaks_max, dtype=np.float64)
     sum_data2 = np.zeros(n_peaks_max, dtype=np.float64)
-    max_test_stat = np.zeros(n_peaks_max, dtype=np.float64)
+    #max_test_stat = np.zeros(n_peaks_max, dtype=np.float64)
+    bg = np.zeros(n_peaks_max, dtype=np.float64)
 
     sorted_index = argsorted_data.size-1  # maximum
     pixels_so_far = 0
 
     while pixels_so_far < argsorted_data.size:
+    #pixel_data = 1
+    #while pixel_data > 0:
         pixel = argsorted_data[sorted_index]
         pixel_data = flat_data[pixel]
         pixels_so_far += 1
@@ -72,12 +75,15 @@ def run(data, argsorted_data, sorted_strides):
                     sum_data2[selected_parent] += sum_data2[p]
                     area[selected_parent] += area[p]
                     parent[p] = selected_parent
+                    #if max_test_stat[p] > max_test_stat[selected_parent]:
+                    #    max_test_stat[selected_parent] = max_test_stat[p]
 
         label[pixel] = selected_parent
         area[selected_parent] += 1
 
         sum_data[selected_parent] += pixel_data
         sum_data2[selected_parent] += pixel_data*pixel_data
+        bg[selected_parent] = pixel_data
         '''
         test_stat = sum_data2[selected_parent]/area[selected_parent] - (sum_data[selected_parent]/area[selected_parent])**2
         if test_stat > max_test_stat[selected_parent]:
@@ -94,7 +100,8 @@ def run(data, argsorted_data, sorted_strides):
 
     mu = sum_data[:n_labels+1] / area[:n_labels+1]
     dd = sum_data2[:n_labels+1] / area[:n_labels+1]
-    test_stat = dd - mu**2
+    #test_stat = dd - mu**2
+    test_stat = sum_data[:n_labels+1] - area[:n_labels+1]*bg[:n_labels+1]
     
     catalog = (parent[:n_labels+1],
                area[:n_labels+1],
