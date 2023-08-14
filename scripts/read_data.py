@@ -13,6 +13,13 @@ def run(dataset, section=None):
     object_name = 'No data read'
     data = np.array([])
     
+    # 1D spectra:
+    
+    if dataset == 11:
+        object_name = 'Sky spectrum'
+        data = np.loadtxt('data/sky_spectrum.txt', usecols=1)
+        wcs = None
+
     # 2D images:
 
     if dataset == 20:
