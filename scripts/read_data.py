@@ -18,8 +18,22 @@ def run(dataset, section=None):
     if dataset == 11:
         object_name = 'Sky spectrum'
         data = np.loadtxt('data/sky_spectrum.txt', usecols=1)
-        wcs = None
+        wcs = data
 
+    if dataset == 12:
+        object_name = f"Tobias' datacube"
+        hdu = fits.open('data/model_cube_blank_convol.fits')
+        wcs = hdu[0].data[:175, 130, 190+40].astype(np.float32)  # true spectrum
+        hdu = fits.open('data/model_cube_noise_convol.fits')
+        data = hdu[0].data[:175, 130, 190+40].astype(np.float32)  # with noise
+        
+    if dataset == 13:
+        object_name = f"Tobias' datacube"
+        hdu = fits.open('data/model_cube_blank_convol.fits')
+        wcs = hdu[0].data[:175, 130, 190+140].astype(np.float32)  # true spectrum
+        hdu = fits.open('data/model_cube_noise_convol.fits')
+        data = hdu[0].data[:175, 130, 190+140].astype(np.float32)  # with noise
+        
     # 2D images:
 
     if dataset == 20:

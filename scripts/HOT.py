@@ -106,6 +106,7 @@ def run(data, argsorted_data, sorted_strides):
     catalog = (parent[:n_labels+1],
                area[:n_labels+1],
                test_stat,
+               bg[:n_labels+1],
                #max_test_stat[:n_labels+1]
               )
 
