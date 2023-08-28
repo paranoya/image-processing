@@ -26,16 +26,16 @@ def run(data, argsorted_data, sorted_strides):
     sorted_index = argsorted_data.size-1  # maximum
     pixels_so_far = 0
 
-    while pixels_so_far < argsorted_data.size:
-    #pixel_data = 1
-    #while pixel_data > 0:
+    #while pixels_so_far < argsorted_data.size:
+    pixel_data = 1
+    while pixel_data > 0 and pixels_so_far < argsorted_data.size:
         pixel = argsorted_data[sorted_index]
         pixel_data = flat_data[pixel]
         pixels_so_far += 1
         sorted_index -= 1
 
         neighbour_parents = []
-        neighbour_ancestors = []
+        #neighbour_ancestors = []
         for dim in range(dimensions):
             stride = sorted_strides[dim]
             remainder = pixel % sorted_strides[dim+1]  # Remember the DIRTY HACK? ;^D
@@ -43,55 +43,55 @@ def run(data, argsorted_data, sorted_strides):
                 p = label[pixel-stride]
                 if p > 0 and p not in neighbour_parents:
                     neighbour_parents.append(p)
-                while p > 0:
-                    pp = parent[p]
-                    if pp == p:
-                        break
-                    else:
-                        p = pp
-                if p > 0 and p not in neighbour_ancestors:
-                    neighbour_ancestors.append(p)
+                #while p > 0:
+                #    pp = parent[p]
+                #    if pp == p:
+                #        break
+                #    else:
+                #        p = pp
+                #if p > 0 and p not in neighbour_ancestors:
+                #    neighbour_ancestors.append(p)
             if remainder < sorted_strides[dim+1]-stride:  # not at the "right border"
                 p = label[pixel+stride]
                 if p > 0 and p not in neighbour_parents:
                     neighbour_parents.append(p)
-                while p > 0:
-                    pp = parent[p]
-                    if pp == p:
-                        break
-                    else:
-                        p = pp
-                if p > 0 and p not in neighbour_ancestors:
-                    neighbour_ancestors.append(p)
+                #while p > 0:
+                #    pp = parent[p]
+                #    if pp == p:
+                #        break
+                #    else:
+                #        p = pp
+                #if p > 0 and p not in neighbour_ancestors:
+                #    neighbour_ancestors.append(p)
 
         neighbour_parents = np.array(neighbour_parents)
-        neighbour_ancestors = np.array(neighbour_ancestors)
-        #n_parents = neighbour_parents.size
-        n_ancestors = neighbour_ancestors.size
-        if n_ancestors == 0:
+        n_parents = neighbour_parents.size
+        #neighbour_ancestors = np.array(neighbour_ancestors)
+        #n_ancestors = neighbour_ancestors.size
+        if n_parents == 0:
             n_labels += 1
             selected_parent = n_labels
             parent[n_labels] = n_labels
-        elif n_ancestors == 1:
+        elif n_parents == 1:
             selected_parent = neighbour_parents[np.argmax(area[neighbour_parents])]
         else:
             selected_parent = neighbour_parents[np.argmax(area[neighbour_parents])]
             p = parent[selected_parent]
-            while p > 0:
-                pp = parent[p]
-                if pp == p:
-                    break
-                else:
-                    p = pp
-            selected_ancestor = p
-            if selected_ancestor == 6:
-                print('6 selected:', selected_parent, neighbour_parents, neighbour_ancestors)
-            for p in neighbour_ancestors:
-                if p != selected_ancestor:
-                    sum_data[selected_ancestor] += sum_data[p]
-                    sum_data2[selected_ancestor] += sum_data2[p]
-                    area[selected_ancestor] += area[p]
-                    parent[p] = selected_ancestor
+            #while p > 0:
+            #    pp = parent[p]
+            #    if pp == p:
+            #        break
+            #    else:
+            #        p = pp
+            #selected_ancestor = p
+            #if selected_ancestor == 6:
+            #    print('6 selected:', selected_parent, neighbour_parents, neighbour_ancestors)
+            for p in neighbour_parents:
+                if p != selected_parent and parent[p] == p:
+                    sum_data[selected_parent] += sum_data[p]
+                    sum_data2[selected_parent] += sum_data2[p]
+                    area[selected_parent] += area[p]
+                    parent[p] = selected_parent
                     #if max_test_stat[p] > max_test_stat[selected_parent]:
                     #    max_test_stat[selected_parent] = max_test_stat[p]
 
