@@ -6,7 +6,7 @@ from time import time
 from scipy import ndimage
 
 
-def run(data, smoothing_radii, resolution_boost=4, residual_accuracy=.1, max_iter=100):
+def run(data, smoothing_radii, resolution_boost=1, residual_accuracy=.1, max_iter=100):
     """Multiscale Richardson-Lucy deconvolution"""
     t0 = time()
     
