@@ -1,5 +1,6 @@
 from . import read_data
 from . import sort_data
+from . import diffuse_emission
 from . import multiscale_RL
 from . import HOT
 from . import reliability
