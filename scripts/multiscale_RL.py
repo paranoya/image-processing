@@ -9,6 +9,10 @@ from scipy import ndimage
 def run(data, smoothing_radii, resolution_boost=4, residual_accuracy=.1, max_iter=100):
     """Multiscale Richardson-Lucy deconvolution"""
     t0 = time()
+    
+    smoothing_radii = np.asarray(smoothing_radii)
+    if len(smoothing_radii.shape) == 0:
+        smoothing_radii = smoothing_radii.reshape((1,))
 
     # remove NaN and negative values
     offset = np.nanmin(data)
