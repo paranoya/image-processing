@@ -6,44 +6,72 @@ from time import time
 from scipy import ndimage
 
 
-def run(data):
+def find_minima(data, plateaus=False):
+    """Return a boolean array with the positions of local minima (or plateaus)"""
+    local_minimum = np.ones(data.shape, dtype=bool)
+    m = local_minimum.ravel()
+    d = data.ravel()
+    for stride_bytes in data.strides:
+        s = stride_bytes // data.itemsize
+        if plateaus:
+            m[:-s] &= (d[:-s] <= d[s:])
+            m[s:] &= (d[s:] <= d[:-s])
+        else:
+            m[:-s] &= (d[:-s] <= d[s:])
+            m[s:] &= (d[s:] <= d[:-s])
+    return local_minimum
+
+
+def run(data, max_iter=100):
     """Separate diffuse emission from compact sources"""
     t0 = time()
     
     previous_background = data.copy()
-    #previous_background[~np.isfinite(previous_background)] = data_offset
-    data_valleys = None
+    #inpaint = np.where(~ np.isfinite(previous_background))
+    #print(inpaint[0].size)
+    #previous_background[inpaint] = ndimage.gaussian_filter(previous_background, inpaint[0].size/2)[inpaint]
+    data_minima = None
     bg_fluctuations = np.inf
     residual_above_bg = 0
 
-    while bg_fluctuations > residual_above_bg:
+    n_iter = 0
+    while bg_fluctuations >= residual_above_bg and n_iter < max_iter:
+        n_iter += 1
+        
         # Find local minima
-        valleys = np.where((previous_background[1:-1] < previous_background[:-2]) & (previous_background[1:-1] < previous_background[2:]))[0]
-        smoothing_scale = 2 * data.size / valleys.size
-        if data_valleys is None:
-            data_valleys = valleys
+        weight = find_minima(previous_background).astype(float)
+        weight[~np.isfinite(previous_background)] = 0
+        minima = np.where(weight.ravel() > 0)
+        smoothing_scale = (data.ndim + 1) * np.power(data.size / np.count_nonzero(weight), 1/data.ndim)
+        if data_minima is None:
+            data_minima = minima
             compact_scale = smoothing_scale
-        #print(f'{valleys.size} valleys => smoothing_scale = {smoothing_scale:.1f} pixels')
+        print(f'{minima[0].size} minima => smoothing_scale = {smoothing_scale:.1f} pixels')
 
-        # Quantify fluctuations (previous background)
-        waves = previous_background[1:-1][valleys[1:]] - previous_background[1:-1][valleys[:-1]]
-        bg_fluctuations = np.sqrt(np.mean(waves**2))
 
         # Interpolation between minima
-        weight = np.zeros_like(data)
-        weight[1:-1][valleys] = 1
         weight = ndimage.gaussian_filter(weight, smoothing_scale)
-
         background = np.zeros_like(data)
-        background[1:-1][valleys] = previous_background[1:-1][valleys]
-        background = ndimage.gaussian_filter(background, smoothing_scale)/weight #/ np.where(weight > 0, weight, 1)
-        background = np.fmin(previous_background, background)
-        previous_background = background
+        background.ravel()[minima] = previous_background.ravel()[minima]
+        #inpaint = np.where(weight <= 0)
+        #n_inpaint = inpaint[0].size
+        #print('w', n_inpaint)
+        #weight[inpaint] = 1 / n_inpaint
+        #background[inpaint] = ndimage.gaussian_filter(background, n_inpaint/2)[inpaint]
+        background = ndimage.gaussian_filter(background, smoothing_scale) / np.where(weight > 0, weight, np.nan)
+        #previous_background[inpaint] = ndimage.gaussian_filter(previous_background, inpaint[0].size/2)[inpaint]
+
+        #background = np.fmin(previous_background, background)
+
+        # Quantify fluctuations (previous background)
+        bg_fluctuations = np.nanstd(background - previous_background)
+        previous_background = np.fmin(previous_background, background)  # background
 
         # Residuals (original minima vs new background)
-        residual = data[1:-1][data_valleys] - background[1:-1][data_valleys]
+        residual = data.ravel()[data_minima] - background.ravel()[data_minima]
         residual_above_bg = np.nanmedian(np.abs(residual))
-        #print(f'   median absolute residual = {residual_above_bg:.3e}, bg_fluctuations = {bg_fluctuations:.3e}')
+        #residual_above_bg = np.nanmedian(data-background)
+        print(f'   median absolute residual = {residual_above_bg:.3e}, bg_fluctuations = {bg_fluctuations:.3e}')
 
     print(f"mean/median background = {np.nanmean(background):.3e}/{np.nanmedian(background):.3e},  residual = {np.nanmean(data-background):.3e}/{np.nanmedian(data-background):.3e} ({time()-t0:.3g} s)")
     return compact_scale, smoothing_scale, background, residual_above_bg

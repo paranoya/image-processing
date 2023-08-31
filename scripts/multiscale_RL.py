@@ -6,7 +6,7 @@ from time import time
 from scipy import ndimage
 
 
-def run(data, smoothing_radii, resolution_boost=1, residual_accuracy=.1, max_iter=100):
+def run(data, smoothing_radii, residual_accuracy=.1, max_iter=100):
     """Multiscale Richardson-Lucy deconvolution"""
     t0 = time()
     
@@ -19,9 +19,9 @@ def run(data, smoothing_radii, resolution_boost=1, residual_accuracy=.1, max_ite
     boosted_data = np.where(np.isfinite(data), data-offset, 0)
 
     # boost resolution
-    original_pixel = np.arange(data.size * resolution_boost) / resolution_boost
-    boosted_data = np.interp(original_pixel, np.arange(data.size), boosted_data)
-    boosted_data = ndimage.gaussian_filter(boosted_data, resolution_boost/2)
+    #original_pixel = np.arange(data.size * resolution_boost) / resolution_boost
+    #boosted_data = np.interp(original_pixel, np.arange(data.size), boosted_data)
+    #boosted_data = ndimage.gaussian_filter(boosted_data, resolution_boost/2)
     
     # main loop:
     mRL = np.ones(smoothing_radii.shape + boosted_data.shape) # initial guess
@@ -44,7 +44,7 @@ def run(data, smoothing_radii, resolution_boost=1, residual_accuracy=.1, max_ite
         print(f'iteration {n_iter}/{max_iter}: rms_residual = {rms_residual:.2e} ({100*(rms_residual-old_rms_residual)/rms_residual:+.2f}%)')
 
     print(f"Multiscale Richardson-Lucy deconvolution ({time()-t0:.3g} s)")
-    return boosted_data, mRL
+    return mRL
 
 
 if (__name__ == '__main__'):
