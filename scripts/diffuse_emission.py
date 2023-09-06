@@ -42,7 +42,7 @@ def run(data, max_iter=100):
         weight = find_minima(previous_background).astype(float)
         weight[~np.isfinite(previous_background)] = 0
         minima = np.where(weight.ravel() > 0)
-        smoothing_scale = (data.ndim + 1) * np.power(data.size / np.count_nonzero(weight), 1/data.ndim)
+        smoothing_scale = np.power(data.size / np.count_nonzero(weight), 1/data.ndim)
         if data_minima is None:
             data_minima = minima
             compact_scale = smoothing_scale
@@ -61,10 +61,10 @@ def run(data, max_iter=100):
         background = ndimage.gaussian_filter(background, smoothing_scale) / np.where(weight > 0, weight, np.nan)
         #previous_background[inpaint] = ndimage.gaussian_filter(previous_background, inpaint[0].size/2)[inpaint]
 
-        #background = np.fmin(previous_background, background)
 
         # Quantify fluctuations (previous background)
         bg_fluctuations = np.nanstd(background - previous_background)
+        background = np.fmin(previous_background, background)
         previous_background = np.fmin(previous_background, background)  # background
 
         # Residuals (original minima vs new background)
