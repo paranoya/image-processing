@@ -87,11 +87,12 @@ def run(data, argsorted_data, sorted_strides):
             #if selected_ancestor == 6:
             #    print('6 selected:', selected_parent, neighbour_parents, neighbour_ancestors)
             for p in neighbour_parents:
-                if p != selected_parent and parent[p] == p:
+                if p != selected_parent and parent[p] == p and parent[selected_parent] != p:
                     sum_data[selected_parent] += sum_data[p]
                     sum_data2[selected_parent] += sum_data2[p]
                     area[selected_parent] += area[p]
                     parent[p] = selected_parent
+                    #bg[p] = pixel_data
                     #if max_test_stat[p] > max_test_stat[selected_parent]:
                     #    max_test_stat[selected_parent] = max_test_stat[p]
 
