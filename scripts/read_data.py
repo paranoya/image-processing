@@ -18,7 +18,7 @@ def run(dataset, section=None):
     if dataset == 11:
         object_name = 'Sky spectrum'
         data = np.loadtxt('data/sky_spectrum.txt', usecols=1)
-        wcs = data
+        wcs = None
 
     if dataset == 12:
         object_name = f"Tobias' datacube"
