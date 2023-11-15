@@ -22,6 +22,15 @@ def find_minima(data, plateaus=False):
     return local_minimum
 
 
+def find_scale(data):
+    """Find characteristic separation between minima"""
+    n_minima = np.count_nonzero(find_minima(data))
+    n_valid = np.count_nonzero(np.isfinite(data))
+    scale = np.power(n_valid / n_minima, 1/data.ndim)
+    #radius = noise_scale / np.sqrt(8*np.log(2)) # FWHM -> Gaussian sigma
+    return scale #/ np.sqrt(8*np.log(2)) # FWHM -> Gaussian sigma
+
+
 def run(data, max_iter=100):
     """Separate diffuse emission from compact sources"""
     t0 = time()
