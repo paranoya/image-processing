@@ -19,8 +19,10 @@ def run(data, smoothing_radii, residual_accuracy=.01, max_iter=100, kernel_trunc
     boosted_data = np.where(np.isfinite(data), data-offset, np.nanmedian(data))
     
     # main loop:
-    mRL = np.ones(smoothing_radii.shape + boosted_data.shape) # initial guess
-    mRL *= boosted_data[np.newaxis, :]
+    mRL = np.ones((smoothing_radii.shape[0],) + boosted_data.shape) # initial guess
+    mRL[0:-1] *= boosted_data[np.newaxis, :]
+    mRL[-1] *= np.nanmedian(boosted_data)
+    
     epsilon = 1e-3*np.min(data[data > 0])  # to prevent underflow (0/0 division)
     old_rms_residual = 0
     rms_residual = np.min(data[data > 0])
@@ -34,6 +36,9 @@ def run(data, smoothing_radii, residual_accuracy=.01, max_iter=100, kernel_trunc
             estimate[i] = ndimage.gaussian_filter(mRL[i], radius, truncate=kernel_truncation)
         estimate = np.sum(estimate, axis=0)
         rms_residual = np.std(boosted_data - estimate)
+        #print('\n  D-E, m0-m1     =\t', np.std(boosted_data - estimate), '\t', np.std(mRL[0] - mRL[1]))
+        #print('  D-r0, D-r1, D-R =\t', np.std(boosted_data - mRL[0]), '\t', np.std(boosted_data - mRL[1]), '\t', np.std(boosted_data - np.sum(mRL, axis=0)))
+        #print('  m0-r0, m1-r1, m-R =\t', np.std(estimate[0] - mRL[0]), '\t', np.std(estimate[1] - mRL[1]), '\t', np.std(estimate - np.sum(mRL, axis=0)))
 
         for i, radius in enumerate(smoothing_radii):
              mRL[i] *= ndimage.gaussian_filter((boosted_data+epsilon) / (estimate+epsilon), radius, truncate=kernel_truncation)

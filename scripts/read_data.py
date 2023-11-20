@@ -71,19 +71,22 @@ def run(dataset, section=None):
         object_name = 'HGC 44'
         hdu = fits.open('data/hcg44_cube_R.fits')
         data = hdu[0].data[:, 150:350, 350:650].astype(np.float32)
-        wcs = WCS(hdu[0].header).celestial
+        #wcs = WCS(hdu[0].header).celestial
+        wcs = None
 
     if dataset == 32:
         object_name = 'Synthetic WSRT cube'
         hdu = fits.open('data/sofiawsrtcube.fits')
         data = hdu[0].data.astype(np.float32)  # to make sure it's converted to float
-        wcs = WCS(hdu[0].header).celestial
+        #wcs = WCS(hdu[0].header).celestial
+        wcs = None
 
     if dataset == 33:
         object_name = 'SoFiA test datacube'
         hdu = fits.open('data/sofia_test_datacube.fits')
         data = hdu[0].data.astype(np.float32)  # to make sure it's converted to float
-        wcs = WCS(hdu[0].header).celestial
+        #wcs = WCS(hdu[0].header).celestial
+        wcs = None
 
     if dataset == 34:
         # TODO: Make sure section is between (0, 0, 0) and (7, 6, 6)
@@ -94,7 +97,8 @@ def run(dataset, section=None):
         k = max(0, 200*section[2] - 10)
         #print(i,j,k)
         data = hdu[0].data[i:i+175, j:j+190, k:k+190].astype(np.float32)  # to make sure it's converted to float
-        wcs = WCS(hdu[0].header).celestial
+        #wcs = WCS(hdu[0].header).celestial
+        wcs = None
 
     if dataset == 35:
         # TODO: Make sure section is between (0, 0, 0) and (7, 6, 6)
