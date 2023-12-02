@@ -97,11 +97,11 @@ def weighted_gaussian_filter(data, radius, weight=None):
     else:
         w = np.where(np.isfinite(weight) & np.isfinite(data), weight, 0.)
 
-    #smooth_w = ndimage.gaussian_filter(w, radius, mode='constant')
-    if np.sum(w) < data.size - .01:  # 1% of a pixel, just in case
-        smooth_w = ndimage.gaussian_filter(w, radius, mode='constant')
-    else:
-        smooth_w = np.ones_like(data)
+    smooth_w = ndimage.gaussian_filter(w, radius, mode='constant')
+    #if np.sum(w) < data.size - .01:  # 1% of a pixel, just in case
+    #    smooth_w = ndimage.gaussian_filter(w, radius, mode='constant')
+    #else:
+    #    smooth_w = np.ones_like(data)
     
     return ndimage.gaussian_filter(np.where(w > 0, w*data, 0.), radius, mode='constant') / smooth_w
 
