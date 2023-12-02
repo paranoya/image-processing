@@ -49,6 +49,7 @@ def run(dataset, section=None):
         object_name = '2D Gaussian noise'
         data = np.random.normal(size=(1000, 1000)) * 42 + 666
         true_solution = None
+        beam_FWHM_pix = [12, 12]  # somewhat random, just for testing
 
     if dataset == 21:
         object_name = 'CIG 335'
@@ -62,8 +63,8 @@ def run(dataset, section=None):
     if dataset == 22:
         object_name = 'NGC2420'
         hdu = fits.open('data/uamA_0033.fits')
-        data = hdu[0].data[:400,:400].astype(np.float32)
-        #data = hdu[0].data.astype(np.float32)
+        #data = hdu[0].data[:400,:400].astype(np.float32)
+        data = hdu[0].data.astype(np.float32)
         wcs = WCS(hdu[0].header)
         true_solution = None
         beam_FWHM_pix = [4, 4]  # eyeball estimate
@@ -73,7 +74,7 @@ def run(dataset, section=None):
         hdu = fits.open('data/hcg44_cube_R.fits')
         data = hdu[0].data[69].astype(np.float32) # to make sure it's converted to float
         wcs = WCS(hdu[0].header).celestial
-        print(hdu[0].header)
+        #print(hdu[0].header)
         true_solution = None
         pixel_scale = wcs.proj_plane_pixel_scales()  # ra dec nu (physical units)
         beam_FWHM_pix = np.array([50*u.arcsec/pixel_scale[1], 50*u.arcsec/pixel_scale[0]])  # dec ra (pixels)
