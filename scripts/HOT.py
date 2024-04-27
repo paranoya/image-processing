@@ -27,9 +27,9 @@ def run(data, argsorted_data, sorted_strides):
     sorted_index = argsorted_data.size-1  # maximum
     pixels_so_far = 0
 
-    while pixels_so_far < argsorted_data.size:
-    #pixel_data = 1
-    #while pixel_data > 0 and pixels_so_far < argsorted_data.size:
+    #while pixels_so_far < argsorted_data.size:
+    pixel_data = 1
+    while pixel_data > 0 and pixels_so_far < argsorted_data.size:
         pixel = argsorted_data[sorted_index]
         pixel_data = flat_data[pixel]
         pixels_so_far += 1
