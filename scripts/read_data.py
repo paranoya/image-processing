@@ -17,6 +17,12 @@ def run(dataset, section=None):
     
     # 1D spectra:
     
+    if dataset == 10:
+        object_name = '1D Gaussian noise'
+        data = np.random.normal(size=1000) * 42 + 666
+        true_solution = np.ones_like(data) * 666
+        beam_FWHM_pix = 42  # somewhat random, just for testing
+        
     if dataset == 11:
         object_name = 'Sky spectrum'
         data = np.loadtxt('data/sky_spectrum.txt', usecols=1)
@@ -24,7 +30,7 @@ def run(dataset, section=None):
         beam_FWHM_pix = 5  # eyeball estimate
 
     if dataset == 12:
-        object_name = f"Tobias' datacube"
+        object_name = f"synthetic_radio_datacube"
         hdu = fits.open('data/model_cube_blank_convol.fits')
         true_solution = hdu[0].data[:175, 130, 190+40].astype(np.float32)  # true spectrum
         hdu = fits.open('data/model_cube_noise_convol.fits')
@@ -34,7 +40,7 @@ def run(dataset, section=None):
         beam_FWHM_pix = float((30*u.km/u.s)/(21*u.cm)/pixel_scale[2])
         
     if dataset == 13:
-        object_name = f"Tobias' datacube"
+        object_name = f"synthetic_radio_datacube"
         hdu = fits.open('data/model_cube_blank_convol.fits')
         true_solution = hdu[0].data[:175, 130, 190+140].astype(np.float32)  # true spectrum
         hdu = fits.open('data/model_cube_noise_convol.fits')
@@ -89,8 +95,13 @@ def run(dataset, section=None):
     if dataset == 31:
         object_name = 'HGC 44'
         hdu = fits.open('data/hcg44_cube_R.fits')
-        data = hdu[0].data[:, 150:350, 350:650].astype(np.float32)
-        #wcs = WCS(hdu[0].header).celestial
+        data = hdu[0].data.astype(np.float32)
+        #data = hdu[0].data[:, 150:350, 350:650].astype(np.float32)
+        #data = hdu[0].data[:, 253:325, 410:483].astype(np.float32)
+        #print(hdu[0].header)
+        wcs = WCS(hdu[0].header)
+        pixel_scale = wcs.proj_plane_pixel_scales()  # ra dec nu (physical units)
+        beam_FWHM_pix = np.array([float((50*u.km/u.s)/pixel_scale[2]), 50*u.arcsec/pixel_scale[1], 50*u.arcsec/pixel_scale[0]])  # nu dec ra (pixels)
         true_solution = None
 
     if dataset == 32:
@@ -122,6 +133,7 @@ def run(dataset, section=None):
     if dataset == 35:
         # TODO: Make sure section is between (0, 0, 0) and (7, 6, 6)
         object_name = f"Section {section} in Tobias' synthetic datacube"
+        object_name = f"synthetic_radio_datacube"
         i = 175*section[0]
         j = max(0, 200*section[1] - 10)
         k = max(0, 200*section[2] - 10)
