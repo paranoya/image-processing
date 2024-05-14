@@ -32,9 +32,11 @@ def run(dataset, section=None):
     if dataset == 12:
         object_name = f"synthetic_radio_datacube"
         hdu = fits.open('data/model_cube_blank_convol.fits')
-        true_solution = hdu[0].data[:175, 130, 190+40].astype(np.float32)  # true spectrum
+        #true_solution = hdu[0].data[:175, 130, 190+40].astype(np.float32)  # true spectrum
+        true_solution = hdu[0].data[:350, 130, 190+40].astype(np.float32)  # true spectrum
         hdu = fits.open('data/model_cube_noise_convol.fits')
-        data = hdu[0].data[:175, 130, 190+40].astype(np.float32)  # with noise
+        #data = hdu[0].data[:175, 130, 190+40].astype(np.float32)  # with noise
+        data = hdu[0].data[:350, 130, 190+40].astype(np.float32)  # with noise
         wcs = WCS(hdu[0].header)
         pixel_scale = wcs.proj_plane_pixel_scales()  # ra dec nu (physical units)
         beam_FWHM_pix = float((30*u.km/u.s)/(21*u.cm)/pixel_scale[2])
@@ -42,9 +44,11 @@ def run(dataset, section=None):
     if dataset == 13:
         object_name = f"synthetic_radio_datacube"
         hdu = fits.open('data/model_cube_blank_convol.fits')
-        true_solution = hdu[0].data[:175, 130, 190+140].astype(np.float32)  # true spectrum
+        #true_solution = hdu[0].data[:175, 130, 190+140].astype(np.float32)  # true spectrum
+        true_solution = hdu[0].data[:350, 130, 190+140].astype(np.float32)  # true spectrum
         hdu = fits.open('data/model_cube_noise_convol.fits')
-        data = hdu[0].data[:175, 130, 190+140].astype(np.float32)  # with noise
+        #data = hdu[0].data[:175, 130, 190+140].astype(np.float32)  # with noise
+        data = hdu[0].data[:350, 130, 190+140].astype(np.float32)  # with noise
         wcs = WCS(hdu[0].header)
         pixel_scale = wcs.proj_plane_pixel_scales()  # ra dec nu (physical units)
         beam_FWHM_pix = float((30*u.km/u.s)/(21*u.cm)/pixel_scale[2])
